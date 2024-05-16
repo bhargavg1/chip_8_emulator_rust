@@ -6,8 +6,10 @@ use std::thread;
 use sdl2::{
     event::Event,
     keyboard::Keycode,
-    pixels::Color,
+    pixels::Color, render::Canvas,
 };
+
+use chip_8_emulator::chip_8::memory;
 
 /// This is the main function for the emulatort
 fn main() {
@@ -18,7 +20,7 @@ fn main() {
 
     let mut event_pump = sdl_context.event_pump().expect("could not get event pump");
     
-    let programwindow = video_subsystem.window("new window thing", 800, 600)
+    let programwindow = video_subsystem.window("chip8 emulator", 640, 320)
         .position_centered()
         .build()
         .expect("failed to create the window");
@@ -27,10 +29,11 @@ fn main() {
         .build()
         .expect("failed to build canvas");
     
-    canvas.set_draw_color(Color::RGB(255, 0, 255));
-    canvas.clear();
-    canvas.present();
+    demo_application(canvas, event_pump);
     
+}
+
+fn demo_application(mut canvas: Canvas<sdl2::video::Window>, mut event_pump: sdl2::EventPump) {
     let mut i: u8 = 0;
     'programloop: loop {
 	i = (i + 1) % 255;
@@ -41,8 +44,8 @@ fn main() {
 		_ => continue
 	    }
 	}
+	canvas.clear();
 	canvas.present();
 	thread::sleep(Duration::from_millis(10));
-    }
-    
+    }    
 }
