@@ -9,8 +9,6 @@ use sdl2::{
     pixels::Color, render::Canvas,
 };
 
-use chip_8_emulator::chip_8::memory;
-
 /// This is the main function for the emulatort
 fn main() {
     println!("Starting emulator");

@@ -13,4 +13,3 @@ impl VideoDisplay {
     }
 }
 
-
