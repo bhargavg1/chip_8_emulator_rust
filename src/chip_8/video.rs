@@ -19,7 +19,9 @@ impl TerminalDriver {
 
 impl VideoDriver for TerminalDriver {
     fn draw(&self, bitmap: &[u64; 32]) {
+	println!("________________________________________________________________________");
 	bitmap.iter().for_each(|x| println!("{:#066b}", x));
+	println!("________________________________________________________________________");
     }
 }
 
@@ -35,7 +37,7 @@ impl VideoDisplay {
     /// a graphical display that uses SDL2.
     pub fn new(driver: Box<dyn VideoDriver>) -> Self {
 	return VideoDisplay {
-	    buffer: [0xAAAAAAAAAAAAAAAAu64; 32],
+	    buffer: [0u64; 32],
 	    driver
 	};
     }
@@ -48,9 +50,9 @@ impl VideoDisplay {
     ///Draws a sprite onto the screen at a given x and y coordinate.
     ///The sprite (get_line) is a closure which works similarly to an iterator. Every time the get_line closure is called, the next
     ///byte of the sprite is returned. Sprite bytes will be drawn until None are left.
-    pub fn draw_sprite(&mut self, inputx: u8, inputy: u8, get_line: Box<dyn Fn() -> Option<(u8, u8)>>) {
+    pub fn draw_sprite(&mut self, inputx: u8, inputy: u8, mut get_line: Box<dyn FnMut() -> Option<(u8, u8)>>) {
 	while let Some((sprite_line, y_offset)) = get_line() {
-	    self.buffer[(inputy.wrapping_add(y_offset) % 32) as usize] ^= (((sprite_line as u64) << 56) >> (inputx % 64)) as u64;
+	    self.buffer[(inputy.wrapping_add(y_offset) % 32) as usize] ^= ((sprite_line as u64) << 56) >> (inputx % 64);
 	}
     }
 
@@ -58,5 +60,13 @@ impl VideoDisplay {
     ///uses the stored VideoDriver in order to accomplish the graphics.
     pub fn update_screen(&self) {
 	self.driver.draw(&self.buffer);
+    }
+}
+
+impl std::fmt::Debug for VideoDisplay {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+	return f.debug_struct("VideoDisplay")
+	    .field("buffer", &self.buffer)
+	    .finish();
     }
 }

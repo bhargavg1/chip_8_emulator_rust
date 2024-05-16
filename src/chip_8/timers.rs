@@ -49,6 +49,14 @@ impl Timable for Timer {
     }
 }
 
+impl std::fmt::Debug for Timer {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+	return f.debug_struct("Timer")
+	    .field("time", &self.time)
+	    .finish();
+    }
+}
+
 pub fn delay_timer() -> Timer {
     return Timer::new(Box::new(|_x| {}));
 }

@@ -47,7 +47,9 @@ impl timers::Timable for Chip8 {
 	if Self::now(current_moment, second_size) {
 	    match self.system.decode_next_instruction() {
 		Ok(_) => {},
-		Err(error) => panic!("error with instruction decoding: {}", error)
+		Err(error) => {
+		    panic!("error with instruction decoding: {}", error);
+		}
 	    }
 	}
     }

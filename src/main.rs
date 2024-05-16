@@ -15,10 +15,11 @@ fn main() {
     let mut chip8_system = Chip8::new();
     chip8_system.init(program);
 
-    let counter = 0;
+    let mut counter = 0;
     loop {
-	chip8_system.do_act(counter, 2000);
+	chip8_system.do_act(counter, 1000);
 
-	thread::sleep(Duration::from_micros(500));
+	counter += 1;
+	thread::sleep(Duration::from_millis(100));
     }
 }
