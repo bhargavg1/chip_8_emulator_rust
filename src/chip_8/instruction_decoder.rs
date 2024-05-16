@@ -12,7 +12,7 @@ const DECODED_INSTRUCTIONS: [fn(&mut ChipSystem, u16) -> Result<(), String>; 16]
 		system.video.clear_buffer();
 		system.video.update_screen();
 	    }
-	    _ => return Err("unimplemented usage of opcode 0x0XXX".to_string())
+	    _ => return Err(format!("unimplemented usage of opcode {:#06x}", input))
 	}
 	system.program_counter += 1;
 	return Ok(());
@@ -108,8 +108,18 @@ impl ChipSystem {
 	    delay_timer: timers::delay_timer()
 	}
     }
-    pub fn decodeInstruction(system: &mut ChipSystem, input: u16) -> Result<(), String> {
-	return DECODED_INSTRUCTIONS[((input & 0xF000) >> 12) as usize](system, input);
+
+    pub fn load_program(&mut self, program_array: Vec<u8>) {
+	self.program_counter = self.ram.load_program(program_array); 
+    }
+
+    ///decodes the next instruction at the program_counter.
+    pub fn decode_next_instruction(&mut self) -> Result<(), String> {
+	let instruction_first_byte = self.ram.memory_array[self.program_counter as usize] as u16;
+	let instruction_second_byte = self.ram.memory_array[(self.program_counter + 1) as usize] as u16;
+	println!("instruction 1 is {:#04x}, instruction 2 is {:#04x}", instruction_first_byte, instruction_second_byte);
+	println!("the combined instruction is {:#06x}", (instruction_first_byte << 8) + instruction_second_byte);
+	return DECODED_INSTRUCTIONS[(instruction_first_byte >> 4) as usize](self, (instruction_first_byte << 8) + instruction_second_byte);
     }
 }
 

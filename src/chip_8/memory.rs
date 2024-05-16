@@ -25,7 +25,7 @@ const CHIP_FONT: [u8; 80] = [
 ///This struct takes care of the RAM for the chip8
 pub struct EntireMemory {
     pub memory_array: [u8; 4096], //the full 4 kilobytes of memory is stored in a single array.
-    font_beginning_index: u16,
+    font_beginning_index: usize
 }
 
 /// This defines the methods for the Entirememory
@@ -47,6 +47,16 @@ impl EntireMemory {
 	    .iter_mut()
 	    .enumerate()
 	    .for_each(|(i, val)| *val = font[i]);
+    }
+
+    pub fn load_program(&mut self, data: Vec<u8>) -> u16 {
+	data
+	    .iter()
+	    .enumerate()
+	    .for_each(|(i, val)| {
+		self.memory_array[i + self.font_beginning_index] = *val;
+	    });
+	return (self.font_beginning_index + data.len()) as u16;
     }
 }
 

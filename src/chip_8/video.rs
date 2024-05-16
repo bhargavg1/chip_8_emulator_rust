@@ -1,10 +1,6 @@
 
 //! This module deals with the display for the chip 8
-//! 
-
-use sdl2::{
-    event::Event, keyboard::Keycode, libc::SYS_gettimeofday, pixels::Color, render::Canvas
-};
+//!
 
 ///Defines how a driver should work to draw the display of the chip 8.
 pub trait VideoDriver {
@@ -49,6 +45,9 @@ impl VideoDisplay {
 	self.buffer.iter_mut().for_each(|x| *x = 0u64);
     }
 
+    ///Draws a sprite onto the screen at a given x and y coordinate.
+    ///The sprite (get_line) is a closure which works similarly to an iterator. Every time the get_line closure is called, the next
+    ///byte of the sprite is returned. Sprite bytes will be drawn until None are left.
     pub fn draw_sprite(&mut self, inputx: u8, inputy: u8, get_line: Box<dyn Fn() -> Option<(u8, u8)>>) {
 	while let Some((sprite_line, y_offset)) = get_line() {
 	    self.buffer[(inputy.wrapping_add(y_offset) % 32) as usize] ^= (((sprite_line as u64) << 56) >> (inputx % 64)) as u64;
