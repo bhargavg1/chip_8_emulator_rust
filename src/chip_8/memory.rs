@@ -97,3 +97,13 @@ pub struct RegisterSet {
     pub index_register: u16,
     pub variable_register: [u8; 16]
 }
+
+impl RegisterSet {
+    ///Returns a new register set, containing an index register int and an array of variable registers.
+    pub fn new() -> Self {
+	return RegisterSet {
+	    index_register: 0,
+	    variable_register: [0u8; 16]
+	}
+    }
+}

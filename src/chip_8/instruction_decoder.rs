@@ -63,9 +63,20 @@ const DECODED_INSTRUCTIONS: [fn(&mut ChipSystem, u16) -> Result<(), String>; 16]
     },
     |system, input| { //instruciton D
 	let vx = system.registers.variable_register[((input & 0xF00) >> 8) as usize];
-	let vy = system.registers.variable_register[((input & 0x0F0) >> 8) as usize];
-	
-	unimplemented!();
+	let vy = system.registers.variable_register[((input & 0x0F0) >> 4) as usize];
+	let height = input & 0xF;
+	let i = system.registers.index_register;
+	let sprite_lines = &system.ram.memory_array[(i as usize)..((i + height - 1) as usize)] as *const [u8];
+	system.video.draw_sprite(vx, vy, Box::new(move || {
+	    if height > 0 {
+		unsafe {
+		    return Some(((*sprite_lines)[(height - 1) as usize], (height - 1) as u8));
+		}
+	    }
+	    return None;
+	}));
+	system.program_counter += 1;
+	return Ok(());
     },
     |system, input| { //instruciton E
 	unimplemented!();
@@ -85,9 +96,18 @@ pub struct ChipSystem {
     delay_timer: timers::Timer
 }
 
-struct Instructions;
-
-impl Instructions {
+impl ChipSystem {
+    pub fn new() -> Self {
+	return ChipSystem {
+	    program_counter: 0,
+	    registers: memory::RegisterSet::new(),
+	    stack: memory::Stack::new(),
+	    ram: memory::EntireMemory::new(),
+	    video: video::VideoDisplay::new(video::TerminalDriver::new()),
+	    sound_timer: timers::sound_timer(),
+	    delay_timer: timers::delay_timer()
+	}
+    }
     pub fn decodeInstruction(system: &mut ChipSystem, input: u16) -> Result<(), String> {
 	return DECODED_INSTRUCTIONS[((input & 0xF000) >> 12) as usize](system, input);
     }
