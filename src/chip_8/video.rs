@@ -8,24 +8,6 @@ pub trait VideoDriver {
     fn draw(&self, bitmap: &[u64; 32]);
 }
 
-///Implements VideoDriver to draw the chip 8 display in the terminal.
-pub struct TerminalDriver;
-
-impl TerminalDriver {
-    ///Returns a new TerminalDriver object to be used by the VideoDisplay.
-    pub fn new() -> Box<Self> {
-	return Box::new(TerminalDriver);
-    }
-}
-
-impl VideoDriver for TerminalDriver {
-    fn draw(&self, bitmap: &[u64; 32]) {
-	println!("________________________________________________________________________");
-	bitmap.iter().for_each(|x| println!("{:#066b}", x));
-	println!("________________________________________________________________________");
-    }
-}
-
 ///This struct holds the video display. It uses 32 u64 integers to hold the 64 x 32 frame.
 pub struct VideoDisplay{
     buffer: [u64; 32],

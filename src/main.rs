@@ -2,24 +2,18 @@
 //! This is an emulator for the CHIP 8, written in Rust.
 
 use std::fs::File;
-
-use std::time::Duration;
-use std::thread;
-use chip_8_emulator::chip_8::{Chip8, Timable};
+use chip_8_emulator::chip_8::{TimedRunner, drivers};
 
 /// This is the main function for the emulatort
 fn main() {
     println!("Starting emulator");
 
-    let program = File::open("programs/IBM Logo.ch8").expect("Error opening file");
-    let mut chip8_system = Chip8::new();
-    chip8_system.init(program);
+    let program_file = File::open("programs/IBM Logo.ch8").expect("unable to find the program file specified");
 
-    let mut counter = 0;
+    let mut chip_8_system = TimedRunner::new(drivers::TerminalNumbers::new(), drivers::TerminalBeep::new());
+    chip_8_system.init(program_file);
+
     loop {
-	chip8_system.do_act(counter, 1000);
-
-	counter += 1;
-	thread::sleep(Duration::from_millis(100));
+	chip_8_system.loop_through_all_instructions(50f64);
     }
 }
