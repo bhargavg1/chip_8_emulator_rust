@@ -40,11 +40,6 @@ impl EntireMemory {
     ///This function will apply a font to the memory
     pub fn apply_font(&mut self, font: &[u8; 80]) {
 	let mut chip_font_iter = font.iter();
-	let mut memory_array_iter = self.memory_array[0..79].iter_mut();
-	while let Some(x) = chip_font_iter.next() {
-	    if let Some(y) = memory_array_iter.next() {
-		*y = *x;
-	    }
-	}
+	self.memory_array.iter_mut().for_each(|x| *x = *chip_font_iter.next().expect("ran out of font characters"));
     }
 }
