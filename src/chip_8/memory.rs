@@ -23,15 +23,15 @@ const CHIP_FONT: [u8; 80] = [
 ];
 
 ///This struct takes care of the RAM for the chip8
-struct EntireMemory {
-    memory_array: [u8; 4096], //the full 4 kilobytes of memory is stored in a single array.
+pub struct EntireMemory {
+    pub memory_array: [u8; 4096], //the full 4 kilobytes of memory is stored in a single array.
     font_beginning_index: u16,
 }
 
 /// This defines the methods for the Entirememory
 impl EntireMemory {
     ///This function will generate a new ram setup for the chip8 with the default font already loaded
-    pub fn new_with_normal_font() -> Self {
+    pub fn new() -> Self {
 	let mut new_memory = EntireMemory {
 	    memory_array: [0u8; 4096],
 	    font_beginning_index: 0,
@@ -46,13 +46,13 @@ impl EntireMemory {
 	self.memory_array[0..79]
 	    .iter_mut()
 	    .enumerate()
-	    .for_each(|(i, val)| *val = CHIP_FONT[i]);
+	    .for_each(|(i, val)| *val = font[i]);
     }
 }
 
 ///This stack comes with 64 bytes of space, and can store up to 32 addresses (the addresses are 16 bit each).
 ///Each stack frame can only store a 12 bit number, for representing a memory address.
-struct Stack {
+pub struct Stack {
     stack_array: [u16; 32],
     stack_size: u16,
     stack_position: usize,
@@ -89,4 +89,11 @@ impl Stack {
 	    return Ok(self.stack_array[self.stack_position]);
 	}
     }
+}
+
+///This implements the registers for the chip 8.
+///It includes the index register (I) and the 16 one-byte variable registers (V0 - VF).
+pub struct RegisterSet {
+    pub index_register: u16,
+    pub variable_register: [u8; 16]
 }
