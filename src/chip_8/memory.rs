@@ -1,6 +1,6 @@
 
 //! This is a module to deal with emulating the RAM of the chip8
-//! A struct with implemented funcitons is provided to help with this.
+//! A Stack struct and and EntireMemory struct are provided to deal with these two components
 
 ///This array contains a default font for the chip 8.
 const CHIP_FONT: [u8; 80] = [
@@ -22,16 +22,57 @@ const CHIP_FONT: [u8; 80] = [
     0xF0, 0x80, 0xF0, 0x80, 0x80  // F
 ];
 
+///This stack comes with 64 bytes of space, and can store up to 32 addresses (the addresses are 16 bit each).
+///Each stack frame can only store a 12 bit number, for representing a memory address.
+struct Stack {
+    stack_array: [u16; 32],
+    stack_size: u16,
+    stack_position: usize,
+}
+
+impl Stack {
+    pub fn new() -> Self {
+	return Stack {
+	    stack_array: [0u16; 32],
+	    stack_size: 32,
+	    stack_position: 0
+	};
+    }
+
+    ///This method will push an address onto the stack, the address can only be 12 bits long maximum (max number 4096).
+    pub fn push(&mut self, value: u16) -> Result<(), ()> {
+	if value > 4096 || self.stack_position == 64 {
+	    return Err(());
+	} else {
+	    self.stack_array[self.stack_position] = value;
+	    return Ok(());
+	}
+    }
+
+    pub fn pop(&mut self) -> Result<u16, ()> {
+	if self.stack_position == 0 {
+	    return Err(());
+	} else {
+	    self.stack_position -= 1;
+	    return Ok(self.stack_array[self.stack_position]);
+	}
+    }
+}
+
 ///This struct takes care of the RAM for the chip8
 struct EntireMemory {
-    memory_array: [u8; 4096] //the full 4 kilobytes of memory is stored in a single array.
+    memory_array: [u8; 4096], //the full 4 kilobytes of memory is stored in a single array.
+    font_beginning_index: u16,
 }
 
 /// This defines the methods for the Entirememory
 impl EntireMemory {
     ///This function will generate a new ram setup for the chip8 with the default font already loaded
     pub fn new_with_normal_font() -> Self {
-	let mut new_memory = EntireMemory { memory_array: [0u8; 4096] };
+	let mut new_memory = EntireMemory {
+	    memory_array: [0u8; 4096],
+	    font_beginning_index: 0,
+	};
 	new_memory.apply_font(&CHIP_FONT);
 	
 	return new_memory;
@@ -39,7 +80,9 @@ impl EntireMemory {
 
     ///This function will apply a font to the memory
     pub fn apply_font(&mut self, font: &[u8; 80]) {
-	let mut chip_font_iter = font.iter();
-	self.memory_array.iter_mut().for_each(|x| *x = *chip_font_iter.next().expect("ran out of font characters"));
+	self.memory_array[0..79]
+	    .iter_mut()
+	    .enumerate()
+	    .for_each(|(i, val)| *val = CHIP_FONT[i]);
     }
 }
