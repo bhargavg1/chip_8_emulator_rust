@@ -22,43 +22,6 @@ const CHIP_FONT: [u8; 80] = [
     0xF0, 0x80, 0xF0, 0x80, 0x80  // F
 ];
 
-///This stack comes with 64 bytes of space, and can store up to 32 addresses (the addresses are 16 bit each).
-///Each stack frame can only store a 12 bit number, for representing a memory address.
-struct Stack {
-    stack_array: [u16; 32],
-    stack_size: u16,
-    stack_position: usize,
-}
-
-impl Stack {
-    pub fn new() -> Self {
-	return Stack {
-	    stack_array: [0u16; 32],
-	    stack_size: 32,
-	    stack_position: 0
-	};
-    }
-
-    ///This method will push an address onto the stack, the address can only be 12 bits long maximum (max number 4096).
-    pub fn push(&mut self, value: u16) -> Result<(), ()> {
-	if value > 4096 || self.stack_position == 64 {
-	    return Err(());
-	} else {
-	    self.stack_array[self.stack_position] = value;
-	    return Ok(());
-	}
-    }
-
-    pub fn pop(&mut self) -> Result<u16, ()> {
-	if self.stack_position == 0 {
-	    return Err(());
-	} else {
-	    self.stack_position -= 1;
-	    return Ok(self.stack_array[self.stack_position]);
-	}
-    }
-}
-
 ///This struct takes care of the RAM for the chip8
 struct EntireMemory {
     memory_array: [u8; 4096], //the full 4 kilobytes of memory is stored in a single array.
@@ -84,5 +47,46 @@ impl EntireMemory {
 	    .iter_mut()
 	    .enumerate()
 	    .for_each(|(i, val)| *val = CHIP_FONT[i]);
+    }
+}
+
+///This stack comes with 64 bytes of space, and can store up to 32 addresses (the addresses are 16 bit each).
+///Each stack frame can only store a 12 bit number, for representing a memory address.
+struct Stack {
+    stack_array: [u16; 32],
+    stack_size: u16,
+    stack_position: usize,
+}
+
+impl Stack {
+    ///Returns a new stack object.
+    pub fn new() -> Self {
+	return Stack {
+	    stack_array: [0u16; 32],
+	    stack_size: 32,
+	    stack_position: 0
+	};
+    }
+
+    ///This method will push an address onto the stack, the address can only be 12 bits long maximum (max number 4096).
+    ///If there is no more space on the stack, then an Err() is returned.
+    pub fn push(&mut self, value: u16) -> Result<(), ()> {
+	if value > 4096 || self.stack_position == 64 {
+	    return Err(());
+	} else {
+	    self.stack_array[self.stack_position] = value;
+	    return Ok(());
+	}
+    }
+
+    ///pops an address from the stack.
+    ///If there is no more things to be popped, then an Err() is returned.
+    pub fn pop(&mut self) -> Result<u16, ()> {
+	if self.stack_position == 0 {
+	    return Err(());
+	} else {
+	    self.stack_position -= 1;
+	    return Ok(self.stack_array[self.stack_position]);
+	}
     }
 }
