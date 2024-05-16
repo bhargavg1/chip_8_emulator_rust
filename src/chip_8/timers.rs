@@ -2,66 +2,58 @@
 //! This module is for the chip 8 timers.
 //! It contains implementations for the delay timer and sound timer, and the Timable trait for timing the timer ticking.
 
-///Depending on the object's internal settings, calling do_act() in your loop will cause the object to perform it's action a fixed number of times per second.
-///If you have a for loop that loops and calls do_act() 1000 times per second, and the object's internal settings
-/// dictate that it should perform it's action only 10 times per second, do_act() will cause the object to perform it's action only once every 100 loops.
-///current_moment: the number of loops youve gone through so far (for, while, loop, etc.).
-///second_size: the amount of loops in a second that your loop can do.
-pub trait Timable {
-    const ACTIONS_PER_SECOND: usize;
-    ///when put in a loop, this will do an action a certain amount of times per second.
-    fn do_act(&mut self, current_moment: usize, second_size: usize);
- 
-    ///returns true a set amount of times per second.
-    fn now(current_moment: usize, second_size: usize) -> bool {
-	return (current_moment % second_size) % (second_size / Self::ACTIONS_PER_SECOND) == 0;
-    }
+///This is a delay timer, which will tick down from whatever number it was set to until it reaches 0.
+pub struct DelayTimer {
+    pub time_value: usize
 }
 
-///This defines a timer object, which counts down and does an action when the timer is at certain states.
-pub struct Timer {
-    time: u8,
-    action: Box<dyn Fn(usize)>
-}
-
-impl Timer {
-    ///creates a new timer object with the defined action.
-    ///by default, the timer is just at 0.
-    fn new(action: Box<dyn Fn(usize)>) -> Self {
-	return Timer {
-	    time: 0,
-	    action
+impl DelayTimer {
+    ///returns a new DelayTimer object with the time set to 0.
+    pub fn new() -> Self {
+	return DelayTimer {
+	    time_value: 0
 	};
     }
-}
 
-impl Timable for Timer {
-    const ACTIONS_PER_SECOND: usize = 60;
-    
-    ///in this implementation, the do_act() function will tick down the timer roughly 60 times per second.
-    fn do_act(&mut self, current_moment: usize, second_size: usize) {
-	if Self::now(current_moment, second_size) {
-	    if self.time > 0 {
-		self.time -= 1;
-		(*self.action)(self.time.into());
-	    }
+    pub fn tick_down(&mut self) {
+	if self.time_value > 0 {
+	    self.time_value -= 1;
 	}
     }
 }
 
-impl std::fmt::Debug for Timer {
-    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-	return f.debug_struct("Timer")
-	    .field("time", &self.time)
-	    .finish();
+///This defines how a sound driver should behave so that the chip 8 can use it.
+///multiple sound drivers can be used so that the chip 8 can beep in different ways.
+pub trait SoundDriver {
+    fn set_beep(&self, state: bool);
+}
+
+///This is the sound timer, which will continuously beep as long as it is above 0. It ticks down until it reaches 0.
+pub struct SoundTimer {
+    pub time_value: usize,
+    beep_switch: bool,
+    driver: Box<dyn SoundDriver>
+}
+
+impl SoundTimer {
+    ///Returns a new SoundTimer, with initial time set to 0.
+    ///You need to supply a SoundDriver for the timer to use to make it's beeps.
+    pub fn new(driver: Box<dyn SoundDriver>) -> Self {
+	return SoundTimer {
+	    time_value: 0,
+	    beep_switch: false,
+	    driver
+	};
+    }
+
+    pub fn tick_down(&mut self) {
+	if !self.beep_switch && self.time_value > 0 {
+	    self.beep_switch = true;
+	    self.driver.set_beep(true);
+	    self.time_value -= 1;
+	} else if self.beep_switch && self.time_value == 0 {
+	    self.beep_switch = false;
+	    self.driver.set_beep(false);
+	}
     }
 }
-
-pub fn delay_timer() -> Timer {
-    return Timer::new(Box::new(|_x| {}));
-}
-
-pub fn sound_timer() -> Timer {
-    return Timer::new(Box::new(|_x| {}));
-}
-

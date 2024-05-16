@@ -3,6 +3,7 @@
 //!
 
 ///Defines how a driver should work to draw the display of the chip 8.
+///many drivers can be implemented, so the chip 8 can make use of many methods, gui or cli.
 pub trait VideoDriver {
     fn draw(&self, bitmap: &[u64; 32]);
 }

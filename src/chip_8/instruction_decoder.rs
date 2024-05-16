@@ -84,27 +84,26 @@ const DECODED_INSTRUCTIONS: [fn(&mut ChipSystem, u16) -> Result<(), String>; 16]
 ];
 
 ///Contains all the components nessecary to run a chip 8 program
-#[derive(Debug)]
 pub struct ChipSystem {
     program_counter: u16,
     registers: memory::RegisterSet,
     stack: memory::Stack,
     ram: memory::EntireMemory,
     video: video::VideoDisplay,
-    sound_timer: timers::Timer,
-    delay_timer: timers::Timer
+    sound_timer: timers::DelayTimer,
+    delay_timer: timers::SoundTimer
 }
 
 impl ChipSystem {
-    pub fn new() -> Self {
+    pub fn new(video_driver: Box<dyn video::VideoDriver>, sound_driver: Box<dyn timers::SoundDriver>) -> Self {
 	return ChipSystem {
 	    program_counter: 0,
 	    registers: memory::RegisterSet::new(),
 	    stack: memory::Stack::new(),
 	    ram: memory::EntireMemory::new(),
-	    video: video::VideoDisplay::new(video::TerminalDriver::new()),
-	    sound_timer: timers::sound_timer(),
-	    delay_timer: timers::delay_timer()
+	    video: video::VideoDisplay::new(video_driver),
+	    sound_timer: timers::DelayTimer::new(),
+	    delay_timer: timers::SoundTimer::new(sound_driver)
 	}
     }
 
@@ -113,6 +112,7 @@ impl ChipSystem {
     }
 
     ///decodes the next instruction at the program_counter.
+    ///also ticks the timer when needed.
     pub fn decode_next_instruction(&mut self) -> Result<(), String> {
 	let instruction_first_byte = self.ram.memory_array[self.program_counter as usize] as u16;
 	let instruction_second_byte = self.ram.memory_array[(self.program_counter + 1) as usize] as u16;
@@ -121,7 +121,11 @@ impl ChipSystem {
 	return match DECODED_INSTRUCTIONS[(instruction_first_byte >> 4) as usize](self, combined_instruction) {
 	    Ok(_) => Ok(()),
 	    Err(error) => Err(format!("{}, instruction was {:#06x}", error, combined_instruction))
-	}
+	};
+    }
+
+    pub fn tick_timers(&mut self) {
+	self.sound_timer.tick_down();
+	self.delay_timer.tick_down();
     }
 }
-
