@@ -10,6 +10,7 @@ pub mod drivers;
 
 pub use video::VideoDriver;
 pub use timers::SoundDriver;
+pub use keyboard::KeyboardDriver;
 
 use std::fs::File;
 use std::io::{BufReader, Read};
@@ -28,15 +29,19 @@ pub struct TimedRunner <'a> {
 }
 
 impl <'a> TimedRunner <'a> {
-    pub fn new<T: VideoDriver + 'a, U: SoundDriver + 'a>(video_driver: T, sound_driver: U) -> Self {
+    pub fn new<T, U, V>(video_driver: T, sound_driver: U, keyboard_driver: V) -> Self where
+	T: VideoDriver + 'a,
+	U: SoundDriver + 'a,
+	V: KeyboardDriver + 'a {
+	
 	return TimedRunner {
-	    system: instruction_decoder::ChipSystem::new(video_driver, sound_driver),
+	    system: instruction_decoder::ChipSystem::new(video_driver, sound_driver, keyboard_driver),
 	    time_since_timer_decrement: 0,
 	    time_since_last_decode: 0
 	};
     }
     
-    fn run_cycle(&mut self) {
+    fn decode_instructions(&mut self) {
 	if MICROSECONDS_PER_INSTRUCTION_DECODE < self.time_since_last_decode {
 	    match self.system.decode_next_instruction() {
 		Ok(_) => {},
@@ -53,14 +58,14 @@ impl <'a> TimedRunner <'a> {
 	self.time_since_timer_decrement += MICROSECONDS_PER_TICK
     }
 
-    pub fn decode_next_instruction(&mut self) {
+    pub fn decode_next_immediately(&mut self) {
 	for _ in 0..MICROSECONDS_PER_INSTRUCTION_DECODE {
-	    self.run_cycle();
+	    self.decode_instructions();
 	}
     }
 
-    pub fn loop_through_all_instructions(&mut self, speed_multiplier: f64) {
-	self.run_cycle();
+    pub fn decode_next_timed(&mut self, speed_multiplier: f64) {
+	self.decode_instructions();
 	thread::sleep(Duration::from_micros((MICROSECONDS_PER_TICK as f64 * speed_multiplier) as u64));
     }
 

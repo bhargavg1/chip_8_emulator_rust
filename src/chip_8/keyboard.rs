@@ -1,7 +1,6 @@
 
 //! This is the keyboard
 
-
 pub trait KeyboardDriver {
     fn get_key_pressed(&self) -> Option<u8>;
 }
@@ -22,3 +21,4 @@ impl <'a> Keyboard <'a> {
 	return self.keyboard_driver.get_key_pressed();
     }
 }
+

@@ -2,7 +2,7 @@
 //! this module implements the instruction decoder for the chip 8.
 //! it also implements the various registers of the chip 8.
 
-use crate::chip_8::{memory, timers, video};
+use crate::chip_8::{memory, timers, video, keyboard};
 
 ///Holds a list of closures which execute the decoded instruciton
 const DECODED_INSTRUCTIONS: [fn(&mut ChipSystem, u16) -> Result<(), String>; 16] = [
@@ -162,10 +162,15 @@ pub struct ChipSystem <'a> {
     video: video::VideoDisplay<'a>,
     sound_timer: timers::DelayTimer,
     delay_timer: timers::SoundTimer<'a>,
+    keyboard: keyboard::Keyboard<'a>
 }
 
 impl <'a> ChipSystem <'a> {
-    pub fn new<T: video::VideoDriver + 'a, U: timers::SoundDriver + 'a>(video_driver: T, sound_driver: U) -> Self {
+    pub fn new<T, U, V>(video_driver: T, sound_driver: U, keyboard_driver: V) -> Self  where
+	T: video::VideoDriver + 'a,
+	U: timers::SoundDriver + 'a,
+	V: keyboard::KeyboardDriver + 'a {
+	
 	return ChipSystem {
 	    program_counter: 0,
 	    registers: memory::RegisterSet::new(),
@@ -174,6 +179,7 @@ impl <'a> ChipSystem <'a> {
 	    video: video::VideoDisplay::new(video_driver),
 	    sound_timer: timers::DelayTimer::new(),
 	    delay_timer: timers::SoundTimer::new(sound_driver),
+	    keyboard: keyboard::Keyboard::new(keyboard_driver)
 	}
     }
 
