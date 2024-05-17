@@ -64,7 +64,6 @@ impl EntireMemory {
 ///Each stack frame can only store a 12 bit number, for representing a memory address.
 pub struct Stack {
     stack_array: [u16; 32],
-    stack_size: u16,
     stack_position: usize,
 }
 
@@ -73,16 +72,15 @@ impl Stack {
     pub fn new() -> Self {
 	return Stack {
 	    stack_array: [0u16; 32],
-	    stack_size: 32,
 	    stack_position: 0
 	};
     }
 
     ///This method will push an address onto the stack, the address can only be 12 bits long maximum (max number 4096).
     ///If there is no more space on the stack, then an Err() is returned.
-    pub fn push(&mut self, value: u16) -> Result<(), ()> {
-	if value > 4096 || self.stack_position == 64 {
-	    return Err(());
+    pub fn push(&mut self, value: u16) -> Result<(), String> {
+	if self.stack_position == 32 {
+	    return Err("Stack Overflow".to_string());
 	} else {
 	    self.stack_array[self.stack_position] = value;
 	    return Ok(());
@@ -91,9 +89,9 @@ impl Stack {
 
     ///pops an address from the stack.
     ///If there is no more things to be popped, then an Err() is returned.
-    pub fn pop(&mut self) -> Result<u16, ()> {
+    pub fn pop(&mut self) -> Result<u16, String> {
 	if self.stack_position == 0 {
-	    return Err(());
+	    return Err("Stack completely empty".to_string());
 	} else {
 	    self.stack_position -= 1;
 	    return Ok(self.stack_array[self.stack_position]);

@@ -14,6 +14,6 @@ fn main() {
     chip_8_system.init(program_file);
 
     loop {
-	chip_8_system.loop_through_all_instructions(50f64);
+	chip_8_system.loop_through_all_instructions(100f64);
     }
 }
