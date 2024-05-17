@@ -4,7 +4,7 @@
 
 ///This is a delay timer, which will tick down from whatever number it was set to until it reaches 0.
 pub struct DelayTimer {
-    pub time_value: usize
+    pub time_value: u8
 }
 
 impl DelayTimer {
@@ -30,7 +30,7 @@ pub trait SoundDriver {
 
 ///This is the sound timer, which will continuously beep as long as it is above 0. It ticks down until it reaches 0.
 pub struct SoundTimer <'a> {
-    pub time_value: usize,
+    pub time_value: u8,
     beep_switch: bool,
     driver: Box<dyn SoundDriver + 'a>
 }

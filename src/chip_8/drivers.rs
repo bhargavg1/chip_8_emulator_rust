@@ -3,8 +3,6 @@
 //!The following are provided already, other drivers can be created to use different methods of drawing the screen.
 //!You can do this by just implementing the VideoDriver and soundDriver trait onto your driver.
 
-use std::io::Read;
-
 use crate::chip_8::video::VideoDriver;
 use crate::chip_8::timers::SoundDriver;
 use crate::chip_8::keyboard::KeyboardDriver;
@@ -53,7 +51,25 @@ impl KeyboardDriver for KeySender {
 	let size = self.stdin.borrow_mut().read_line(&mut read_chars).expect("failed to get keys: stdin read error");
 	let read_chars = read_chars.as_bytes();
 	if size > 1 {
-	    return Some(read_chars[size - 2]);
+	    return match read_chars[size - 2] {
+		b'1' => Some(0x1),
+		b'2' => Some(0x2),
+		b'3' => Some(0x3),
+		b'4' => Some(0xC),
+		b'q' => Some(0x4),
+		b'w' => Some(0x5),
+		b'e' => Some(0x6),
+		b'r' => Some(0xD),
+		b'a' => Some(0x7),
+		b's' => Some(0x8),
+		b'd' => Some(0x9),
+		b'f' => Some(0xE),
+		b'z' => Some(0xA),
+		b'x' => Some(0x0),
+		b'c' => Some(0xB),
+		b'v' => Some(0xF),
+		_ => None
+	    }
 	}
 	return None;
     }

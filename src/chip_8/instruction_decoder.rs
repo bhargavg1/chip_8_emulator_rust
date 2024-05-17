@@ -119,13 +119,13 @@ const DECODED_INSTRUCTIONS: [fn(&mut ChipSystem, u16) -> Result<(), String>; 16]
     },
     |system, input| { //instruciton B
 	system.program_counter = get_nnn(input) + system.registers.variable_register[0] as u16;
-	return Err(format!("unimplemented usage of opcode {:#06x}", input));
+	return Ok(());
     },
     |system, input| { //instruciton C
 	let random_allocation = 0u8;
 	let random_address = random_allocation as *const u8 as usize;
 	system.registers.variable_register[get_x(input)] = (((random_address / std::mem::size_of::<usize>()) & 0xFF) as u8) & get_nn(input);
-	return Err(format!("unimplemented usage of opcode {:#06x}", input));
+	return Ok(());
     },
     |system, input| { //instruciton D
 	let vx = system.registers.variable_register[get_x(input)];
@@ -146,10 +146,31 @@ const DECODED_INSTRUCTIONS: [fn(&mut ChipSystem, u16) -> Result<(), String>; 16]
 	return Ok(());
     },
     |system, input| { //instruciton E
-	return Err(format!("unimplemented usage of opcode {:#06x}", input));
+	let skip_if_equal = match get_nn(input) {
+	    0x9E => true,
+	    0xA1 => false,
+	    _ => return Err(format!("unimplemented usage of opcode {:#06x}", input))
+	};
+	match system.keyboard.which_key_pressed() {
+	    Some(key) => {
+		if (key == system.registers.variable_register[get_x(input)]) == skip_if_equal {
+		    system.program_counter += 2;
+		}
+	    },
+	    None => {
+		system.program_counter += 2
+	    }
+	}
+	return Ok(());
     },
     |system, input| { //instruciton F
-	return Err(format!("unimplemented usage of opcode {:#06x}", input));
+	match get_nn(input) {
+	    0x07 => system.registers.variable_register[get_x(input)] = system.delay_timer.time_value,
+	    0x15 => system.delay_timer.time_value = system.registers.variable_register[get_x(input)],
+	    0x18 => system.sound_timer.time_value = system.registers.variable_register[get_x(input)],
+	    _ => return Err(format!("unimplemented usage of opcode {:#06x}", input))
+	}
+	return Ok(());
     }
 ];
 
