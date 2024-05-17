@@ -154,18 +154,18 @@ const DECODED_INSTRUCTIONS: [fn(&mut ChipSystem, u16) -> Result<(), String>; 16]
 ];
 
 ///Contains all the components nessecary to run a chip 8 program
-pub struct ChipSystem {
+pub struct ChipSystem <'a> {
     program_counter: u16,
     registers: memory::RegisterSet,
     stack: memory::Stack,
     ram: memory::EntireMemory,
-    video: video::VideoDisplay,
+    video: video::VideoDisplay<'a>,
     sound_timer: timers::DelayTimer,
-    delay_timer: timers::SoundTimer,
+    delay_timer: timers::SoundTimer<'a>,
 }
 
-impl ChipSystem {
-    pub fn new(video_driver: Box<dyn video::VideoDriver>, sound_driver: Box<dyn timers::SoundDriver>) -> Self {
+impl <'a> ChipSystem <'a> {
+    pub fn new<T: video::VideoDriver + 'a, U: timers::SoundDriver + 'a>(video_driver: T, sound_driver: U) -> Self {
 	return ChipSystem {
 	    program_counter: 0,
 	    registers: memory::RegisterSet::new(),

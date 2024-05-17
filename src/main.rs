@@ -10,7 +10,7 @@ fn main() {
 
     let program_file = File::open("programs/IBM Logo.ch8").expect("unable to find the program file specified");
 
-    let mut chip_8_system = TimedRunner::new(drivers::TerminalNumbers::new(), drivers::TerminalBeep::new());
+    let mut chip_8_system = TimedRunner::new(drivers::TerminalNumbers, drivers::TerminalBeep);
     chip_8_system.init(program_file);
 
     loop {

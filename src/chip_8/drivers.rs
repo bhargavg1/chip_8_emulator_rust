@@ -11,13 +11,6 @@ use crate::chip_8::timers::SoundDriver;
 ///The VideoDriver trait has more info on how the display is stored.
 pub struct TerminalNumbers;
 
-impl TerminalNumbers {
-    ///Returns a new TerminalDriver object to be used by the VideoDisplay.
-    pub fn new() -> Box<Self> {
-	return Box::new(Self);
-    }
-}
-
 impl VideoDriver for TerminalNumbers {
     fn draw(&self, bitmap: &[u64; 32]) {
 	print!("{}[2J", 27 as char);
@@ -30,13 +23,6 @@ impl VideoDriver for TerminalNumbers {
 ///Implements SoundDriver to make beeps for the chip 8. This just uses the standard terminal alarm ("\x07").
 ///This driver is extremely rudimentary and a hacky way of beeping.
 pub struct TerminalBeep;
-
-impl TerminalBeep {
-    ///Returns a new TerminalBeep SoundDriver.
-    pub fn new() -> Box<Self> {
-	return Box::new(Self);
-    }
-}
 
 impl SoundDriver for TerminalBeep {
     fn set_beep(&self, state: bool) {

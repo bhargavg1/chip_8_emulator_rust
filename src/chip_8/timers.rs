@@ -29,20 +29,20 @@ pub trait SoundDriver {
 }
 
 ///This is the sound timer, which will continuously beep as long as it is above 0. It ticks down until it reaches 0.
-pub struct SoundTimer {
+pub struct SoundTimer <'a> {
     pub time_value: usize,
     beep_switch: bool,
-    driver: Box<dyn SoundDriver>
+    driver: Box<dyn SoundDriver + 'a>
 }
 
-impl SoundTimer {
+impl <'a> SoundTimer <'a> {
     ///Returns a new SoundTimer, with initial time set to 0.
     ///You need to supply a SoundDriver for the timer to use to make it's beeps.
-    pub fn new(driver: Box<dyn SoundDriver>) -> Self {
+    pub fn new<T: SoundDriver + 'a>(driver: T) -> Self {
 	return SoundTimer {
 	    time_value: 0,
 	    beep_switch: false,
-	    driver
+	    driver: Box::new(driver)
 	};
     }
 

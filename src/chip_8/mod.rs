@@ -5,6 +5,7 @@ mod memory;
 mod video;
 mod timers;
 mod instruction_decoder;
+mod keyboard;
 pub mod drivers;
 
 pub use video::VideoDriver;
@@ -20,14 +21,14 @@ const MICROSECONDS_PER_TICK: u64 = 1000000 / TIMING_LCM;
 const MICROSECONDS_PER_TIMER_DECREMENT: u64 = MICROSECONDS_PER_TICK * 700;
 const MICROSECONDS_PER_INSTRUCTION_DECODE: u64 = MICROSECONDS_PER_TICK * 60;
 
-pub struct TimedRunner {
-    system: instruction_decoder::ChipSystem,
+pub struct TimedRunner <'a> {
+    system: instruction_decoder::ChipSystem<'a>,
     time_since_timer_decrement: u64,
     time_since_last_decode: u64
 }
 
-impl TimedRunner {
-    pub fn new(video_driver: Box<dyn video::VideoDriver>, sound_driver: Box<dyn timers::SoundDriver>) -> Self {
+impl <'a> TimedRunner <'a> {
+    pub fn new<T: VideoDriver + 'a, U: SoundDriver + 'a>(video_driver: T, sound_driver: U) -> Self {
 	return TimedRunner {
 	    system: instruction_decoder::ChipSystem::new(video_driver, sound_driver),
 	    time_since_timer_decrement: 0,

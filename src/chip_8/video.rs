@@ -19,17 +19,17 @@ pub trait VideoDriver {
 ///Like described in the VideoDriver description, the screen is stored as an array of integers, each integer is a u64 (it has 64 bits),
 /// and there are 32 of them in the array.
 ///You must provide a VideoDriver though in order to actually be able to see the display.
-pub struct VideoDisplay{
+pub struct VideoDisplay <'a> {
     buffer: [u64; 32],
-    driver: Box<dyn VideoDriver>
+    driver: Box<dyn VideoDriver + 'a>
 }
 
-impl VideoDisplay {
+impl <'a> VideoDisplay <'a> {
     ///Returns a new VideoDisplay, which is set to completely blank. You need to supply the driver that the display will use. 
-    pub fn new(driver: Box<dyn VideoDriver>) -> Self {
+    pub fn new<T: VideoDriver + 'a>(driver: T) -> Self {
 	return VideoDisplay {
 	    buffer: [0u64; 32],
-	    driver
+	    driver: Box::new(driver)
 	};
     }
 
