@@ -25,7 +25,7 @@ const CHIP_FONT: [u8; 80] = [
 ///This struct takes care of the RAM for the chip8
 pub struct EntireMemory {
     pub memory_array: [u8; 4096], //the full 4 kilobytes of memory is stored in a single array.
-    font_beginning_index: usize
+    font_beginning_index: u16
 }
 
 /// This defines the methods for the Entirememory
@@ -54,9 +54,13 @@ impl EntireMemory {
 	    .iter()
 	    .enumerate()
 	    .for_each(|(i, val)| {
-		self.memory_array[i + self.font_beginning_index + 0x200] = *val;
+		self.memory_array[i + 0x200] = *val;
 	    });
 	return (0x200) as u16;
+    }
+
+    pub fn get_character(&self, input: usize) -> u16 {
+	return self.font_beginning_index +  (input as u16 * 5);
     }
 }
 
@@ -83,6 +87,7 @@ impl Stack {
 	    return Err("Stack Overflow".to_string());
 	} else {
 	    self.stack_array[self.stack_position] = value;
+	    self.stack_position += 1;
 	    return Ok(());
 	}
     }

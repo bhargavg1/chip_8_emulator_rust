@@ -41,31 +41,31 @@ impl <'a> TimedRunner <'a> {
 	};
     }
     
-    fn decode_instructions(&mut self) {
-	if MICROSECONDS_PER_INSTRUCTION_DECODE < self.time_since_last_decode {
-	    match self.system.decode_next_instruction() {
-		Ok(_) => {},
-		Err(error) => panic!("Error executing instruction: {}", error)
-	    }
-	    self.time_since_last_decode = 0;
-	}
-
-	if MICROSECONDS_PER_TIMER_DECREMENT < self.time_since_timer_decrement {
+    fn tick_chip(&mut self) {
+	self.time_since_timer_decrement += MICROSECONDS_PER_TICK;
+	self.time_since_last_decode += MICROSECONDS_PER_TICK;
+	
+	if self.time_since_timer_decrement > MICROSECONDS_PER_TIMER_DECREMENT {
 	    self.system.tick_timers();
 	    self.time_since_timer_decrement = 0;
 	}
-	self.time_since_last_decode += MICROSECONDS_PER_TICK;
-	self.time_since_timer_decrement += MICROSECONDS_PER_TICK
+	if self.time_since_last_decode > MICROSECONDS_PER_INSTRUCTION_DECODE {
+	    match self.system.decode_next_instruction() {
+		Ok(_) => {},
+		Err(error) => panic!("error decoding instruction: {}", error)
+	    }
+	    self.time_since_last_decode = 0;
+	}
     }
 
     pub fn decode_next_immediately(&mut self) {
-	for _ in 0..MICROSECONDS_PER_INSTRUCTION_DECODE {
-	    self.decode_instructions();
+	while self.time_since_timer_decrement != 0 {
+	    self.tick_chip();
 	}
     }
 
     pub fn decode_next_timed(&mut self, speed_multiplier: f64) {
-	self.decode_instructions();
+	self.tick_chip();
 	thread::sleep(Duration::from_micros((MICROSECONDS_PER_TICK as f64 * speed_multiplier) as u64));
     }
 
@@ -78,7 +78,7 @@ impl <'a> TimedRunner <'a> {
 		Err(error) => panic!("error with reading program file: {}", error) })
 	    .collect::<Vec<u8>>();
 
-	self.system.load_program(file_buffer);
+	self.system.load_program_from_vector(file_buffer);
     }
 
 }
