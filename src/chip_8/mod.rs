@@ -4,7 +4,7 @@
 mod memory;
 mod video;
 mod timers;
-mod instruction_decoder;
+mod instruction_decoders;
 mod keyboard;
 pub mod drivers;
 
@@ -23,7 +23,7 @@ const MICROSECONDS_PER_TIMER_DECREMENT: u64 = MICROSECONDS_PER_TICK * 700;
 const MICROSECONDS_PER_INSTRUCTION_DECODE: u64 = MICROSECONDS_PER_TICK * 60;
 
 pub struct TimedRunner <'a> {
-    system: instruction_decoder::ChipSystem<'a>,
+    system: instruction_decoders::ChipSystem<'a>,
     time_since_timer_decrement: u64,
     time_since_last_decode: u64
 }
@@ -35,7 +35,7 @@ impl <'a> TimedRunner <'a> {
 	V: KeyboardDriver + 'a {
 	
 	return TimedRunner {
-	    system: instruction_decoder::ChipSystem::new(video_driver, sound_driver, keyboard_driver),
+	    system: instruction_decoders::ChipSystem::new(video_driver, sound_driver, keyboard_driver),
 	    time_since_timer_decrement: 0,
 	    time_since_last_decode: 0
 	};
@@ -46,11 +46,11 @@ impl <'a> TimedRunner <'a> {
 	self.time_since_last_decode += MICROSECONDS_PER_TICK;
 	
 	if self.time_since_timer_decrement > MICROSECONDS_PER_TIMER_DECREMENT {
-	    self.system.tick_timers();
+	    instruction_decoders::tick_timers(&mut self.system);
 	    self.time_since_timer_decrement = 0;
 	}
 	if self.time_since_last_decode > MICROSECONDS_PER_INSTRUCTION_DECODE {
-	    match self.system.decode_next_instruction() {
+	    match instruction_decoders::decode_next_instruction(&mut self.system) {
 		Ok(_) => {},
 		Err(error) => panic!("error decoding instruction: {}", error)
 	    }
@@ -78,7 +78,7 @@ impl <'a> TimedRunner <'a> {
 		Err(error) => panic!("error with reading program file: {}", error) })
 	    .collect::<Vec<u8>>();
 
-	self.system.load_program_from_vector(file_buffer);
+	instruction_decoders::load_program_from_vector(&mut self.system, file_buffer);
     }
 
 }

@@ -33,11 +33,14 @@ impl SoundDriver for TerminalBeep {
     }
 }
 
+///implements the KeyboardDriver to send key presses to the chip8. This is a very rudimentary driver only for testing purposes.
+///you press one of keys (1234,qwer,asdf,zxvc make up the 4x4 keypad), and then you have to press enter for the chip8 to register that key.
 pub struct KeySender {
     stdin: std::cell::RefCell<std::io::Stdin>
 }
 
 impl KeySender {
+    ///this version of the driver requires that you call the new() function, you cant generate an instance yourself.
     pub fn new() -> Self {
 	return KeySender {
 	    stdin: std::cell::RefCell::new(std::io::stdin())
