@@ -2,6 +2,7 @@
 //! this module implements the instruction decoder for the chip 8.
 //! it also implements the various registers of the chip 8.
 
+use std::fmt::Debug;
 use crate::chip_8::{memory, timers, video, keyboard};
 
 ///Holds a list of closures which execute the decoded instruciton
@@ -252,6 +253,15 @@ impl <'a> ChipSystem <'a> {
 	    delay_timer: timers::DelayTimer::new(),
 	    keyboard: keyboard::Keyboard::new(keyboard_driver)
 	}
+    }
+}
+
+impl Debug for ChipSystem<'_> {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+	return f.debug_struct("Internals: ")
+	    .field("program counter", &self.program_counter)
+	    .field("index", &self.registers.index_register)
+	    .finish();
     }
 }
 

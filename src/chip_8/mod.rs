@@ -56,7 +56,7 @@ impl <'a> TimedRunner <'a> {
 	if self.time_since_last_decode > MICROSECONDS_PER_INSTRUCTION_DECODE {
 	    match instruction_decoders::decode_next_instruction(&mut self.system) {
 		Ok(_) => {},
-		Err(error) => panic!("error decoding instruction: {}", error)
+		Err(error) => panic!("error decoding instruction: {}\n, debug info: {:?}", error, self.system)
 	    }
 	    self.time_since_last_decode = 0;
 	}

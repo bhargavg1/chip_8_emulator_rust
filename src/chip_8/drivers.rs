@@ -1,7 +1,7 @@
 
-//!implements various drivers for providing the chip 8 with sound and video.
+//!implements various drivers for providing the chip 8 with sound, video, and keyboard.
 //!The following are provided already, other drivers can be created to use different methods of drawing the screen.
-//!You can do this by just implementing the VideoDriver and soundDriver trait onto your driver.
+//!You can do this by just implementing the VideoDriver, SoundDriver, and KeyboardDriver traits onto your driver, then supplying them to the chip.
 
 use crate::chip_8::video::VideoDriver;
 use crate::chip_8::timers::SoundDriver;
