@@ -12,12 +12,25 @@ use crate::chip_8::keyboard::KeyboardDriver;
 ///The VideoDriver trait has more info on how the display is stored.
 pub struct TerminalNumbers;
 
+impl TerminalNumbers {
+    pub fn new() -> Self {
+	return TerminalNumbers;
+    }
+}
+
 impl VideoDriver for TerminalNumbers {
     fn draw(&self, bitmap: &[u64; 32]) {
-	print!("{}[2J", 27 as char);
-	println!("________________________________________________________________________");
-	bitmap.iter().for_each(|x| println!("{:#066b}", x));
-	println!("________________________________________________________________________");
+	let mut displayholder = ['\u{2591}'; 129 * 32];
+	bitmap.iter().enumerate().for_each(|(i, val)| {
+	    for offset in 0..64 {
+		if *val & (0x1u64 << (63 - offset)) != 0 {
+		    displayholder[(offset * 2) + (129 * i)] = '\u{2588}';
+		    displayholder[(offset * 2) + (129 * i) + 1] = '\u{2588}';
+		}
+	    }
+	    displayholder[(129 * i) + 128] = '\n';
+	});
+	print!("\x1Bc{}",displayholder.iter().collect::<String>());
     }
 }
 
@@ -40,9 +53,9 @@ impl SoundDriver for TerminalBeep {
 ///This driver uses libc functions, namely the tcsetattr() to disable the terminal canonical mode. This causes the stdin to be basically unbuffered,
 /// allowing the program to instantly read a keypress the moment you press it. Without it, you would have to press enter after every keystroke to
 /// put a newline in the stdin for the program to recieve the input.
-pub struct KeySender;
+pub struct StdinKeysender;
 
-impl KeySender {
+impl StdinKeysender {
     ///this version of the driver requires that you call the new() function, you cant generate an instance yourself.
     pub fn new() -> Self {
 	let mut termsettings = libc::termios { //the numbers here are just placeholders, none of them will actually be used.
@@ -60,11 +73,11 @@ impl KeySender {
 	    termsettings.c_lflag &= u32::MAX ^ libc::ICANON; //we keep all settings same except ICANON, we dont want canonical mode, we want instant input.
 	    libc::tcsetattr(0, libc::TCSANOW, &mut termsettings as *mut libc::termios); //we then apply the modified settings back on stdin (fd 0).
 	}
-	return KeySender;
+	return StdinKeysender;
     }
 }
 
-impl KeyboardDriver for KeySender {
+impl KeyboardDriver for StdinKeysender {
     fn get_key_pressed(&self) -> Option<u8> {
 	let mut readbuffer = [0u8; 1];
 	unsafe {
