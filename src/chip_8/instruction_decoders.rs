@@ -139,7 +139,7 @@ const DECODED_INSTRUCTIONS: [fn(&mut ChipSystem, u16) -> Result<(), String>; 16]
 	let mut height = get_n(input);
 	let i = system.registers.index_register as usize;
 	let sprite_lines = &system.ram.memory_array[i..(i + height)] as *const [u8];
-	system.video.draw_sprite(vx, vy, Box::new(move || {
+	system.video.draw_sprite(vx, vy, move || {
 	    if height > 0 {
 		height -= 1;
 		unsafe {
@@ -147,7 +147,7 @@ const DECODED_INSTRUCTIONS: [fn(&mut ChipSystem, u16) -> Result<(), String>; 16]
 		}
 	    }
 	    return None;
-	}));
+	});
 	system.video.update_screen();
 	return Ok(());
     },

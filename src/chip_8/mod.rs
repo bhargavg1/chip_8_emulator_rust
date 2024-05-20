@@ -17,10 +17,10 @@ use std::io::{BufReader, Read};
 use std::time::Duration;
 use std::thread;
 
-const TIMING_LCM: u64 = 700 * 60;
-const MICROSECONDS_PER_TICK: u64 = 1000000 / TIMING_LCM;
-const MICROSECONDS_PER_TIMER_DECREMENT: u64 = MICROSECONDS_PER_TICK * 700;
-const MICROSECONDS_PER_INSTRUCTION_DECODE: u64 = MICROSECONDS_PER_TICK * 60;
+const TIMING_LCM: u64 = 700 * 60; //instructions need to be decoded at 700hz, the timers need to decrement at 60hz. (not actually the lcm but makes math easier)
+const MICROSECONDS_PER_TICK: u64 = 1000000 / TIMING_LCM; //every second can be divided into 1/TIMING_LCM pieces.
+const MICROSECONDS_PER_TIMER_DECREMENT: u64 = 1000000 / 60; //the timers should decrement every 1/60 of a second.
+const MICROSECONDS_PER_INSTRUCTION_DECODE: u64 = 1000000 / 700; //an instruction should be decoded every 1/700 of a second.
 
 ///this is a chip 8 runner that runs the chip8 instructions at the desired speed, so that the programs dont run too fast or slow.
 ///it initializes the system with a program File that you supply.

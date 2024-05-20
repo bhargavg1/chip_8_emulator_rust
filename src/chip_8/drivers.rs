@@ -33,14 +33,19 @@ impl SoundDriver for TerminalBeep {
     }
 }
 
-///implements the KeyboardDriver to send key presses to the chip8. This is a very rudimentary driver only for testing purposes.
+///implements the KeyboardDriver to send key presses to the chip8. This is a very rudimentary driver also.
 ///you press one of keys (1234,qwer,asdf,zxvc make up the 4x4 keypad).
+///Like the SoundDriver implementation above, this is a hacky way of getting keyboard input I think, but I didnt want to use
+/// some well-made library and bring in all these dependencies, when I could try to make this myself and learn a bit about stdin and stdout.
+///This driver uses libc functions, namely the tcsetattr() to disable the terminal canonical mode. This causes the stdin to be basically unbuffered,
+/// allowing the program to instantly read a keypress the moment you press it. Without it, you would have to press enter after every keystroke to
+/// put a newline in the stdin for the program to recieve the input.
 pub struct KeySender;
 
 impl KeySender {
     ///this version of the driver requires that you call the new() function, you cant generate an instance yourself.
     pub fn new() -> Self {
-	let mut termsettings = libc::termios {
+	let mut termsettings = libc::termios { //the numbers here are just placeholders, none of them will actually be used.
 	    c_iflag: 0,
 	    c_oflag: 0,
 	    c_cflag: 0,
@@ -51,9 +56,9 @@ impl KeySender {
 	    c_ospeed: 0
 	};
 	unsafe {
-	    libc::tcgetattr(0, &mut termsettings as *mut libc::termios);
-	    termsettings.c_lflag &= u32::MAX ^ libc::ICANON;
-	    libc::tcsetattr(0, libc::TCSANOW, &mut termsettings as *mut libc::termios);
+	    libc::tcgetattr(0, &mut termsettings as *mut libc::termios); //we get the current stdin configuration and store it in termsettings.
+	    termsettings.c_lflag &= u32::MAX ^ libc::ICANON; //we keep all settings same except ICANON, we dont want canonical mode, we want instant input.
+	    libc::tcsetattr(0, libc::TCSANOW, &mut termsettings as *mut libc::termios); //we then apply the modified settings back on stdin (fd 0).
 	}
 	return KeySender;
     }

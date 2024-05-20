@@ -1,6 +1,6 @@
 
 //! This module is for the chip 8 timers.
-//! It contains implementations for the delay timer and sound timer, and the Timable trait for timing the timer ticking.
+//! It contains implementations for the delay timer and sound timer.
 
 ///This is a delay timer, which will tick down from whatever number it was set to until it reaches 0.
 pub struct DelayTimer {
@@ -15,6 +15,7 @@ impl DelayTimer {
 	};
     }
 
+    ///decrements the timer once everytime it is called unless the timer has already reached 0.
     pub fn tick_down(&mut self) {
 	if self.time_value > 0 {
 	    self.time_value -= 1;
@@ -44,6 +45,8 @@ impl <'a> SoundTimer <'a> {
 	};
     }
 
+    ///decrements the timer once everytime it is called, unless the timer has already reached 0.
+    ///This will also cause constant beeping to happen as long as the timer is above 0.
     pub fn tick_down(&mut self) {
 	if self.time_value > 0 {
 	    self.time_value -= 1;

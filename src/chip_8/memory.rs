@@ -1,6 +1,7 @@
 
 //! This is a module to deal with emulating the RAM of the chip8
 //! A Stack struct and and EntireMemory struct are provided to deal with these two components
+//! A Registers struct is also used to store the various regusters of the chip8.
 
 ///This array contains a default font for the chip 8.
 const CHIP_FONT: [u8; 80] = [
@@ -49,6 +50,7 @@ impl EntireMemory {
 	    .for_each(|(i, val)| *val = font[i]);
     }
 
+    ///this function takes in a Vector of bytes which make up a program, and loads them into the correct position in memory.
     pub fn load_program(&mut self, data: Vec<u8>) -> u16 {
 	data
 	    .iter()
@@ -59,6 +61,7 @@ impl EntireMemory {
 	return (0x200) as u16;
     }
 
+    ///this function will return the location of the specified font character in memory.
     pub fn get_character(&self, input: usize) -> u16 {
 	return self.font_beginning_index +  (input as u16 * 5);
     }
