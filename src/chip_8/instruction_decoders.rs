@@ -5,6 +5,11 @@
 use crate::chip_8::{memory, timers, video, keyboard};
 
 ///Holds a list of closures which execute the decoded instruciton
+///the closures are strategically ordered to match the chip instructions order,
+/// the 0xxx instructions are first, 1xxx are second, fxxx are last, etc.
+///you just insert that first hex number into the array to get the desired corresponding closure.
+///with that closure, you just need to provide it with access to the ChipSystem and the instruction details,
+/// so that the instruction can have the desired outcome.
 const DECODED_INSTRUCTIONS: [fn(&mut ChipSystem, u16) -> Result<(), String>; 16] = [
     |system, input| { //instruction 0
 	match input & 0x0FFF {
@@ -217,6 +222,7 @@ const DECODED_INSTRUCTIONS: [fn(&mut ChipSystem, u16) -> Result<(), String>; 16]
 ];
 
 ///Contains all the components nessecary to run a chip 8 program
+///the instructions work on this struct and modify it's state.
 pub struct ChipSystem <'a> {
     program_counter: u16,
     registers: memory::RegisterSet,
@@ -229,6 +235,8 @@ pub struct ChipSystem <'a> {
 }
 
 impl <'a> ChipSystem <'a> {
+    ///returns a new uninitialized ChipSystem. You will have to provide the program after the initialization
+    ///see mod.rs TimedRunner struct for the init() function it has.
     pub fn new<T, U, V>(video_driver: T, sound_driver: U, keyboard_driver: V) -> Self  where
 	T: video::VideoDriver + 'a,
 	U: timers::SoundDriver + 'a,
@@ -247,6 +255,8 @@ impl <'a> ChipSystem <'a> {
     }
 }
 
+///This takes a vector of bytes which make up the program and pushes them into memory.
+///It is never called directly, see init() in mod.rs.
 pub fn load_program_from_vector(system: &mut ChipSystem, program_array: Vec<u8>) {
     system.program_counter = system.ram.load_program(program_array);
 }
@@ -261,31 +271,42 @@ pub fn decode_next_instruction(system: &mut ChipSystem) -> Result<(), String> {
     return DECODED_INSTRUCTIONS[get_instruction_category(combined_instruction)](system, combined_instruction);
 }
 
+///Takes the chipsystem timers and decrements them exactly once if they have a value above 0.
 pub fn tick_timers(system: &mut ChipSystem) {
     system.sound_timer.tick_down();
     system.delay_timer.tick_down();
 }
 
+///takes an input instrucition and returns the second nibble from the left.
+///this second nibble usually represents a variable register (there are 16 of them so 0-F to choose one of them).
 const fn get_x(input: u16) -> usize {
     return ((input & 0x0F00) >> 8) as usize;
 }
 
+///takes the input instrucition and returns the third nibble from the left.
+///this third nibble usually represents a variable register too, though the use of this
+/// nibble as a vr is rare (used in the display dxyn instruction for one).
 const fn get_y(input: u16) -> usize {
     return ((input & 0x00F0) >> 4) as usize;
 }
 
+///takes an input instruction and returns the last nibble from the left
 const fn get_n(input: u16) -> usize {
     return (input & 0x000F) as usize;
 }
 
+///takes an input instruction and returns the last two nibbles (second byte)
 const fn get_nn(input: u16) -> u8 {
     return (input & 0x00FF) as u8;
 }
 
+///takes and input instruction and returns the last three nibbles.
 const fn get_nnn(input: u16) -> u16 {
     return input & 0x0FFF;
 }
 
+///takes an input instruction and returns the very first nibble
+///this is used to index the closures array to get the desired closure which executes the desired instruction.
 const fn get_instruction_category(input: u16) -> usize {
     return ((input & 0xF000) >> 12) as usize;
 }

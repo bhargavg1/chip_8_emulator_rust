@@ -5,7 +5,8 @@ use std::env;
 use std::fs::File;
 use chip_8_emulator::chip_8::{drivers, TimedRunner};
 
-/// This is the main function for the emulatort
+///This is the main function for the emulator
+///the chip8's internal workings are all abstracted away into other modules, so this main function can be self expalnatory.
 fn main() {
     println!("Starting emulator");
     let args = env::args().collect::<Vec<String>>();
