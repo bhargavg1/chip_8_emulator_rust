@@ -34,46 +34,55 @@ impl SoundDriver for TerminalBeep {
 }
 
 ///implements the KeyboardDriver to send key presses to the chip8. This is a very rudimentary driver only for testing purposes.
-///you press one of keys (1234,qwer,asdf,zxvc make up the 4x4 keypad), and then you have to press enter for the chip8 to register that key.
-pub struct KeySender {
-    stdin: std::cell::RefCell<std::io::Stdin>
-}
+///you press one of keys (1234,qwer,asdf,zxvc make up the 4x4 keypad).
+pub struct KeySender;
 
 impl KeySender {
     ///this version of the driver requires that you call the new() function, you cant generate an instance yourself.
     pub fn new() -> Self {
-	return KeySender {
-	    stdin: std::cell::RefCell::new(std::io::stdin())
+	let mut termsettings = libc::termios {
+	    c_iflag: 0,
+	    c_oflag: 0,
+	    c_cflag: 0,
+	    c_lflag: 0,
+	    c_line: 0,
+	    c_cc: [0; 32],
+	    c_ispeed: 0,
+	    c_ospeed: 0
+	};
+	unsafe {
+	    libc::tcgetattr(0, &mut termsettings as *mut libc::termios);
+	    termsettings.c_lflag &= u32::MAX ^ libc::ICANON;
+	    libc::tcsetattr(0, libc::TCSANOW, &mut termsettings as *mut libc::termios);
 	}
+	return KeySender;
     }
 }
 
 impl KeyboardDriver for KeySender {
     fn get_key_pressed(&self) -> Option<u8> {
-	let mut read_chars = String::new();
-	let size = self.stdin.borrow_mut().read_line(&mut read_chars).expect("failed to get keys: stdin read error");
-	let read_chars = read_chars.as_bytes();
-	if size > 1 {
-	    return match read_chars[size - 2] {
-		b'1' => Some(0x1),
-		b'2' => Some(0x2),
-		b'3' => Some(0x3),
-		b'4' => Some(0xC),
-		b'q' => Some(0x4),
-		b'w' => Some(0x5),
-		b'e' => Some(0x6),
-		b'r' => Some(0xD),
-		b'a' => Some(0x7),
-		b's' => Some(0x8),
-		b'd' => Some(0x9),
-		b'f' => Some(0xE),
-		b'z' => Some(0xA),
-		b'x' => Some(0x0),
-		b'c' => Some(0xB),
-		b'v' => Some(0xF),
-		_ => None
-	    }
+	let mut readbuffer = [0u8; 1];
+	unsafe {
+	    libc::read(0, &mut readbuffer as *mut _ as *mut libc::c_void, 1);
 	}
-	return None;
+	return match readbuffer[0] {
+	    b'1' => Some(0x1),
+	    b'2' => Some(0x2),
+	    b'3' => Some(0x3),
+	    b'4' => Some(0xC),
+	    b'q' => Some(0x4),
+	    b'w' => Some(0x5),
+	    b'e' => Some(0x6),
+	    b'r' => Some(0xD),
+	    b'a' => Some(0x7),
+	    b's' => Some(0x8),
+	    b'd' => Some(0x9),
+	    b'f' => Some(0xE),
+	    b'z' => Some(0xA),
+	    b'x' => Some(0x0),
+	    b'c' => Some(0xB),
+	    b'v' => Some(0xF),
+	    _ => None
+	}
     }
 }

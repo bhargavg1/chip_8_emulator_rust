@@ -1,5 +1,10 @@
 
 //! This is an emulator for the CHIP 8, written in Rust.
+//! I made this project mainly as a way to learn about Rust and it's features.
+//! Along the way, I definetly feel like I have gotten a hang of the basics of how rust works, suct as match statements,
+//!  ownership, unsafe blocks, etc. I didnt delve much into threads or macros though, maybe thats for another project.
+//!
+//! To start this program, you can just run "cargo run -- /path/to/.ch8/program" in order to run a specific program.
 
 use std::env;
 use std::fs::File;
@@ -12,7 +17,7 @@ fn main() {
     let args = env::args().collect::<Vec<String>>();
     let input_file_name = {
 	if args.len() < 2 {
-	    panic!("program file location not provided");
+	    panic!("program file location not provided, provide path to .ch8 program as first argument to this program to run it");
 	} else {
 	    &args[1]
 	}
