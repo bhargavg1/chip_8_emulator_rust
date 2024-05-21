@@ -5,7 +5,7 @@
 ///this trait is used to interface with different implementations of the chip8 keyboard.
 ///see the drivers.rs file for a simple implentation.
 pub trait KeyboardDriver {
-    fn get_key_pressed(&self) -> Option<u8>;
+    fn get_key_pressed(&mut self) -> Option<u8>;
 }
 
 ///this is a keyboard object which used a KeyboardDriver to get and interpret keypresses.
@@ -22,7 +22,7 @@ impl <'a> Keyboard <'a> {
     }
 
     ///tells you which key is pressed.
-    pub fn which_key_pressed(&self) -> Option<u8> {
+    pub fn which_key_pressed(&mut self) -> Option<u8> {
 	return self.keyboard_driver.get_key_pressed();
     }
 }

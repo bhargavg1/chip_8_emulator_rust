@@ -13,7 +13,7 @@
 ///a driver just needs to know how to interface with this pixel array in order to properly draw the screen.
 ///See the drivers.rs file to see a very simple implemtation of this trait.
 pub trait VideoDriver {
-    fn draw(&self, bitmap: &[u64; 32]);
+    fn draw(&mut self, bitmap: &[u64; 32]);
 }
 
 ///This struct holds the video display. It uses 32 u64 integers to hold the 64 x 32 frame.
@@ -51,7 +51,7 @@ impl <'a> VideoDisplay <'a> {
 
     ///updates the screen with the current latest buffer that is stored.
     ///uses the stored VideoDriver in order to accomplish the graphics.
-    pub fn update_screen(&self) {
+    pub fn update_screen(&mut self) {
 	self.driver.draw(&self.buffer);
     }
 }

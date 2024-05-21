@@ -27,7 +27,7 @@ fn main() {
     let program_file = File::open(input_file_name).expect("unable to find the program file specified");
 
     println!("initializing chip8 decoder");
-    let mut chip_8_system = TimedRunner::new(drivers::TerminalNumbers::new(), drivers::TerminalBeep, drivers::StdinKeysender::new()); 
+    let mut chip_8_system = TimedRunner::new(drivers::StdoutDisplay::new(), drivers::TerminalBeep::new(), drivers::StdinKeysender::new()); 
     
     println!("loading program...");
     chip_8_system.init(program_file);
