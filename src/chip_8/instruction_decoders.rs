@@ -2,7 +2,6 @@
 //! this module implements the instruction decoder for the chip 8.
 //! it also implements the various registers of the chip 8.
 
-use std::fmt::Debug;
 use crate::chip_8::{memory, timers, video, keyboard};
 
 ///Holds a list of closures which execute the decoded instruciton
@@ -128,9 +127,11 @@ const DECODED_INSTRUCTIONS: [fn(&mut ChipSystem, u16) -> Result<(), String>; 16]
 	return Ok(());
     },
     |system, input| { //instruciton C
-	let random_allocation = 0u8;
-	let random_address = random_allocation as *const u8 as usize;
-	system.registers.variable_register[get_x(input)] = (((random_address / std::mem::size_of::<usize>()) & 0xFF) as u8) & get_nn(input);
+	let nanosec = match std::time::SystemTime::now().duration_since(std::time::UNIX_EPOCH) {
+	    Ok(duration) => duration.subsec_nanos(),
+	    Err(error) => return Err(error.to_string())
+	};
+	system.registers.variable_register[get_x(input)] = get_nn(input) & ((nanosec & 0xFF) as u8);
 	return Ok(());
     },
     |system, input| { //instruciton D
@@ -256,7 +257,7 @@ impl <'a> ChipSystem <'a> {
     }
 }
 
-impl Debug for ChipSystem<'_> {
+impl std::fmt::Debug for ChipSystem<'_> {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
 	return f.debug_struct("Internals: ")
 	    .field("program counter", &self.program_counter)
