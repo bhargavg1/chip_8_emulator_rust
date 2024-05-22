@@ -11,7 +11,7 @@ use crate::chip_8::keyboard::KeyboardDriver;
 ///This driver is extremely rudimentary and simple, it just println's each line in the binary representation as it is stored.
 ///The VideoDriver trait has more info on how the display is stored.
 pub struct StdoutDisplay {
-    display_array: [char; 4128]
+    display_array: [u8; 12322]
 }
 
 impl StdoutDisplay {
@@ -32,26 +32,49 @@ impl StdoutDisplay {
 	    panic!("Your terminal is not wide enough: needed 128 lines, only got {}\n try putting it in fullscreen", termsize.ws_col);
 	}
 	return StdoutDisplay {
-	    display_array: ['\u{2591}'; 4128]
+	    display_array: {
+		let mut array = [0u8; 12322]; //this represents a 128*32 screen (two chars per pixel -> 64 * 2), each char is 3 bytes (because unicode).
+		for i in 0..32 {
+		    for u in 0..128 { //this is initializing the screen with "blank" characters (see u+2591 unicode character).
+			array[2 + (i * 385) + (u * 3)] = 0xE2;
+			array[2 + (i * 385) + (u * 3) + 1] = 0x96;
+			array[2 + (i * 385) + (u * 3) + 2] = 0x91;
+		    }
+		    array[2 + (i * 385) + 384] = b'\n'; //there should be a newline character after every 64 pixels (1 pixel = 2 characters = 6 bytes).
+		}
+		array[0] = 0x1B; //to make it easy, the first two bytes of the screen is an escape/redraw command, causing screen to clear every frame.
+		array[1] = b'c';
+		array
+	    }
 	}
     }
 }
 
 impl VideoDriver for StdoutDisplay {
     fn draw(&mut self, bitmap: &[u64; 32]) {
-	bitmap.iter().enumerate().for_each(|(i, val)| {
-	    for offset in 0..64 {
-		if *val & (0x1u64 << (63 - offset)) != 0 {
-		    self.display_array[(offset * 2) + (129 * i)] = '\u{2588}';
-		    self.display_array[(offset * 2) + (129 * i) + 1] = '\u{2588}';
+	let mut changed = false;
+	bitmap.iter().enumerate().for_each(|(i, val)| { //for every row in the display
+	    for offset in 0..64 { //for every pixel in the current row
+		if *val & (0x1u64 << (63 - offset)) != 0 {  //a pixel in a 64 pixel line is a bit in a 64 byte number. if a bit is 1, then pixel should be on.
+		    if self.display_array[2 + (i * 385) + (offset * 3 * 2) + 2] == 0x91 { //if the pixel is off, change it to on, otherwise no action needed.
+			self.display_array[2 + (i * 385) + (offset * 3 * 2) + 2] = 0x88; //see unicode character u+2588 for bright pixels.
+			self.display_array[2 + (i * 385) + (offset * 3 * 2) + 3 + 2] = 0x88; //there are two terminal chars per pixel, we want square pixels.
+			changed = true; //sometimes the redraw function is called but nothing is actually changed, this tells if it is nessecary to actually redraw.
+		    }
 		} else {
-		    self.display_array[(offset * 2) + (129 * i)] = '\u{2591}';
-		    self.display_array[(offset * 2) + (129 * i) + 1] = '\u{2591}';
+		    if self.display_array[2 + (i * 385) + (offset * 3 * 2) + 2] == 0x88 { //if pixel is on, we need to change it to off, otherwise no action needed.
+			self.display_array[2 + (i * 385) + (offset * 3 * 2) + 2] = 0x91;
+			self.display_array[2 + (i * 385) + (offset * 3 * 2) + 3 + 2] = 0x91;
+			changed = true;
+		    }
 		}
 	    }
-	    self.display_array[(129 * i) + 128] = '\n';
 	});
-	print!("\x1Bc{}",self.display_array.iter().collect::<String>());
+	if changed { //if there was actually a change to the buffer and we need to update the screen, call the write() syscall to update display.
+	    unsafe {
+		libc::write(0, &self.display_array as *const _ as *const libc::c_void, 12322);
+	    }
+	}	
     }
 }
 
@@ -113,11 +136,11 @@ impl StdinKeysender {
 		loop {
 		    std::thread::sleep(std::time::Duration::from_millis(10));
 		    let mut new_key = current_pressed.lock().expect("unable to block this thread");
-		    let mut readbuffer = [0u8; 1];
+		    let mut readbuffer = [0u8; 1]; 
 		    unsafe {		    
-			libc::read(0, &mut readbuffer as *mut _ as *mut libc::c_void, 1);
+			libc::read(0, &mut readbuffer as *mut _ as *mut libc::c_void, 1); //read a key from the keyboard.
 		    }
-		    (*new_key) = match readbuffer[0] {
+		    (*new_key) = match readbuffer[0] { //match that key, set it as the current key being pressed.
 			b'1' => Some(0x1),
 			b'2' => Some(0x2),
 			b'3' => Some(0x3),
@@ -134,7 +157,7 @@ impl StdinKeysender {
 			b'x' => Some(0x0),
 			b'c' => Some(0xB),
 			b'v' => Some(0xF),
-			_ => None
+			_ => None //if no key was found, then new_key should be None.
 		    };
 		}
 	    }),
