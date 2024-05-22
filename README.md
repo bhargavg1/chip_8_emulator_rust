@@ -23,3 +23,4 @@ z x c v -> A 0 B F
 ```
 ### Emulator screenshots
 Here is the emulator running a simple program which just displays the ch8 logo
+![Alt Text](https://github.com/bhargavg1/chip_8_emulator/blob/main/assets/chip%208%20demo%20chip%208%20logo.gif)
